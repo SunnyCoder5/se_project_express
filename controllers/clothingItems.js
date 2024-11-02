@@ -3,13 +3,11 @@ const {
   castError,
   documentNotFoundError,
   defaultError,
-  okStatusCode,
-  createdStatusCode,
 } = require("../utils/errors");
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((clothingItems) => res.send(clothingItems))
+    .then((clothingItems) => res.status(200).send(clothingItems))
     .catch((err) => {
       console.error(err);
       return res
@@ -22,7 +20,9 @@ const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
   ClothingItem.create({ name, weather, imageUrl, owner })
-    .then((item) => res.status(createdStatusCode).res.send(item))
+    .then((item) => {
+      res.status(201).send(item);
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -35,8 +35,8 @@ const createItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  ClothingItem.findByIdAndRemove(req.params.id)
-    .then((clothingItems) => res.send(clothingItems))
+  ClothingItem.findByIdAndRemove(req.params.itemId)
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       return res
@@ -52,7 +52,7 @@ const likeItem = (req, res) =>
     { new: true },
   )
     .orFail()
-    .then((item) => res.status(okStatusCode).send(item))
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
@@ -73,7 +73,7 @@ const dislikeItem = (req, res) =>
     { new: true },
   )
     .orFail()
-    .then((item) => res.status(okStatusCode).send(item))
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
