@@ -13,7 +13,6 @@ mongoose
   .catch(console.error);
 
 app.use(express.json());
-app.use("/", mainRouter);
 
 app.use((req, res, next) => {
   req.user = {
@@ -21,6 +20,7 @@ app.use((req, res, next) => {
   };
   next();
 });
+app.use("/", mainRouter);
 
 app.listen(PORT, () => {
   console.log(`App listening at port ${PORT}`);

@@ -36,12 +36,19 @@ const createItem = (req, res) => {
 
 const deleteItem = (req, res) => {
   ClothingItem.findByIdAndRemove(req.params.itemId)
+    .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
+      if (err.name === "CastError") {
+        return res.status(castError).send({ message: err.message });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(documentNotFoundError).send({ message: err.message });
+      }
       return res
         .status(defaultError)
-        .send({ message: "An error has occurred on the server." });
+        .send({ message: "An error has ocurred to the server" });
     });
 };
 
