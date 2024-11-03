@@ -7,7 +7,7 @@ const {
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((clothingItems) => res.status(200).send(clothingItems))
+    .then((clothingItems) => res.send(clothingItems))
     .catch((err) => {
       console.error(err);
       return res
@@ -37,7 +37,7 @@ const createItem = (req, res) => {
 const deleteItem = (req, res) => {
   ClothingItem.findByIdAndRemove(req.params.itemId)
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
@@ -59,7 +59,7 @@ const likeItem = (req, res) =>
     { new: true },
   )
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
