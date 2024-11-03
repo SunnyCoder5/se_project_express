@@ -37,7 +37,7 @@ const createItem = (req, res) => {
 const deleteItem = (req, res) => {
   ClothingItem.findByIdAndRemove(req.params.itemId)
     .orFail()
-    .then((item) => res.send(item))
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
@@ -80,7 +80,7 @@ const dislikeItem = (req, res) =>
     { new: true },
   )
     .orFail()
-    .then((item) => res.send(item))
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
