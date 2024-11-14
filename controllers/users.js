@@ -24,7 +24,15 @@ const getUsers = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  User.findOne({ email }).then((existingUser) => {
+  if (!email) {
+    console.log("Missing email - should send 400");
+    return res.status(castError).send({ message: "Email is required" });
+  }
+  if (!password) {
+    console.log("Missing email - should send 400");
+    return res.status(castError).send({ message: "Password is required" });
+  }
+  return User.findOne({ email }).then((existingUser) => {
     if (existingUser) {
       return res
         .status(duplicateError)
@@ -37,7 +45,6 @@ const createUser = (req, res) => {
             name: user.name,
             avatar: user.avatar,
             email: user.email,
-            _id: user._id,
           }),
         )
         .catch((err) => {
