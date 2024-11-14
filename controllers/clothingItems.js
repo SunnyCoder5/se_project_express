@@ -3,6 +3,7 @@ const {
   castError,
   documentNotFoundError,
   defaultError,
+  forbiddenError,
 } = require("../utils/errors");
 
 const getItems = (req, res) => {
@@ -35,20 +36,37 @@ const createItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  ClothingItem.findByIdAndRemove(req.params.itemId)
+  const itemId = req.params;
+  ClothingItem.findById({ _id: itemId })
     .orFail()
-    .then((item) => res.send(item))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "CastError") {
-        return res.status(castError).send({ message: err.message });
-      }
-      if (err.name === "DocumentNotFoundError") {
+    .then((item) => {
+      if (!item) {
         return res.status(documentNotFoundError).send({ message: err.message });
       }
-      return res
-        .status(defaultError)
-        .send({ message: "An error has ocurred to the server" });
+
+      if (!item.owner.equals(req.user._id)) {
+        return res
+          .status(forbiddenError)
+          .send({ message: "You can't delete this item" });
+      }
+
+      return ClothingItem.findByIdAndRemove(req.params.itemId)
+        .orFail()
+        .then((item) => res.send(item))
+        .catch((err) => {
+          console.error(err);
+          if (err.name === "CastError") {
+            return res.status(castError).send({ message: err.message });
+          }
+          if (err.name === "DocumentNotFoundError") {
+            return res
+              .status(documentNotFoundError)
+              .send({ message: err.message });
+          }
+          return res
+            .status(defaultError)
+            .send({ message: "An error has ocurred to the server" });
+        });
     });
 };
 

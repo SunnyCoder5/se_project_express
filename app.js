@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 
@@ -14,13 +15,9 @@ mongoose
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: "67251b4383aac86858c8db57",
-  };
-  next();
-});
 app.use("/", mainRouter);
+
+app.use(cors());
 
 app.listen(PORT, () => {
   console.log(`App listening at port ${PORT}`);
