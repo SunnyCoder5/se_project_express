@@ -83,7 +83,7 @@ const login = (req, res) => {
           .send({ message: "Incorrect email or password" });
       }
       return res
-        .status(internalServerError)
+        .status(defaultError)
         .send({ message: "An error has ocurred to the server" });
     });
 };
