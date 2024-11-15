@@ -39,7 +39,9 @@ const deleteItem = (req, res) => {
   const itemId = req.params;
   ClothingItem.findById({ _id: itemId })
     .orFail()
-    .then((item) => {
+    .then((item) => res.send(item))
+    .catch((err) => {
+      console.error(err);
       if (!item) {
         return res.status(documentNotFoundError).send({ message: err.message });
       }
@@ -52,7 +54,7 @@ const deleteItem = (req, res) => {
 
       return ClothingItem.findByIdAndRemove(req.params.itemId)
         .orFail()
-        .then((item) => res.send(item))
+        .then((newItem) => res.send(newItem))
         .catch((err) => {
           console.error(err);
           if (err.name === "CastError") {
