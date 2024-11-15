@@ -11,17 +11,6 @@ const {
   unauthorizedError,
 } = require("../utils/errors");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server." });
-    });
-};
-
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   if (!email) {
@@ -36,7 +25,13 @@ const createUser = (req, res) => {
     if (existingUser) {
       return res
         .status(duplicateError)
-        .send({ message: "This email already exists" });
+        .send({ message: "This email already exists" })
+        .catch((err) => {
+          console.error(err);
+          return res
+            .status(defaultError)
+            .send({ message: "An error has occurred on the server." });
+        });
     }
     return bcrypt.hash(password, 10).then((hash) =>
       User.create({ name, avatar, email, password: hash })
@@ -117,6 +112,7 @@ const updateUser = (req, res) => {
       runValidators: true,
     },
   )
+    .orFail()
     .then(() => res.send({ name, avatar }))
     .catch((err) => {
       console.error(err);
@@ -132,4 +128,4 @@ const updateUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getCurrentUser, login, updateUser };
+module.exports = { createUser, getCurrentUser, login, updateUser };

@@ -52,7 +52,7 @@ const deleteItem = (req, res) => {
         .catch((error) => {
           console.error(error);
           if (error.name === "CastError") {
-            return res.status(400).send({ message: "Invalid ID format" }); // Return 400 for invalid ID
+            return res.status(castError).send({ message: "Invalid ID format" }); // Return 400 for invalid ID
           }
           if (error.name === "DocumentNotFoundError") {
             return res
@@ -67,7 +67,7 @@ const deleteItem = (req, res) => {
     .catch((error) => {
       console.error(error);
       if (error.name === "CastError") {
-        return res.status(400).send({ message: "Invalid ID format" }); // Also handle CastError here
+        return res.status(castError).send({ message: "Invalid ID format" }); // Also handle CastError here
       }
       if (error.name === "DocumentNotFoundError") {
         return res
