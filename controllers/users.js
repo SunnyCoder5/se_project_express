@@ -110,14 +110,14 @@ const getCurrentUser = (req, res) => {
 const updateUser = (req, res) => {
   const { name, avatar } = req.body;
   User.findByIdAndUpdate(
-    req.user.id,
+    req.user._id,
     { name, avatar },
     {
       new: true,
       runValidators: true,
     },
   )
-    .then((user) => res.send({ user }))
+    .then(() => res.send({ name, avatar }))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
