@@ -36,7 +36,7 @@ const createItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  const {itemId} = req.params;
+  const { itemId } = req.params;
   ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
@@ -52,7 +52,7 @@ const deleteItem = (req, res) => {
         .catch((error) => {
           console.error(error);
           if (error.name === "CastError") {
-            return res.status(castError).send({ message: error.message });
+            return res.status(400).send({ message: "Invalid ID format" }); // Return 400 for invalid ID
           }
           if (error.name === "DocumentNotFoundError") {
             return res
@@ -66,6 +66,9 @@ const deleteItem = (req, res) => {
     })
     .catch((error) => {
       console.error(error);
+      if (error.name === "CastError") {
+        return res.status(400).send({ message: "Invalid ID format" }); // Also handle CastError here
+      }
       if (error.name === "DocumentNotFoundError") {
         return res
           .status(documentNotFoundError)
