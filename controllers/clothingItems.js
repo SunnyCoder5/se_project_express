@@ -52,9 +52,9 @@ const deleteItem = (req, res) => {
           .send({ message: "You can't delete this item" });
       }
 
-      return ClothingItem.findByIdAndRemove(req.params.itemId)
+      return ClothingItem.findByIdAndRemove({ _id: req.params.itemId })
         .orFail()
-        .then((item) => res.send(item))
+        .then((newItem) => res.send(newItem))
         .catch((err) => {
           console.error(err);
           if (err.name === "CastError") {
