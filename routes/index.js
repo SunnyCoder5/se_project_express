@@ -9,7 +9,7 @@ router.post("/signin", login);
 router.post("/signup", createUser);
 
 router.use("/users", auth, userRouter);
-router.use("/items", clothingItemRouter);
+router.use("/items", auth, clothingItemRouter);
 router.use((req, res) => {
   res
     .status(documentNotFoundError)
