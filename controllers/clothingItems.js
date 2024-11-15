@@ -36,39 +36,44 @@ const createItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  const itemId = req.params;
-  ClothingItem.findById({ _id: itemId })
+  const {itemId} = req.params;
+  ClothingItem.findById(itemId)
     .orFail()
-    .then((item) => res.send(item))
-    .catch((err) => {
-      console.error(err);
-      if (!item) {
-        return res.status(documentNotFoundError).send({ message: err.message });
-      }
-
+    .then((item) => {
       if (!item.owner.equals(req.user._id)) {
         return res
           .status(forbiddenError)
           .send({ message: "You can't delete this item" });
       }
 
-      return ClothingItem.findByIdAndRemove({ _id: req.params.itemId })
+      return ClothingItem.findByIdAndRemove(itemId)
         .orFail()
-        .then((newItem) => res.send(newItem))
-        .catch((err) => {
-          console.error(err);
-          if (err.name === "CastError") {
-            return res.status(castError).send({ message: err.message });
+        .then((deletedItem) => res.send(deletedItem))
+        .catch((error) => {
+          console.error(error);
+          if (error.name === "CastError") {
+            return res.status(castError).send({ message: error.message });
           }
-          if (err.name === "DocumentNotFoundError") {
+          if (error.name === "DocumentNotFoundError") {
             return res
               .status(documentNotFoundError)
-              .send({ message: err.message });
+              .send({ message: error.message });
           }
           return res
             .status(defaultError)
-            .send({ message: "An error has ocurred to the server" });
+            .send({ message: "An error has occurred on the server" });
         });
+    })
+    .catch((error) => {
+      console.error(error);
+      if (error.name === "DocumentNotFoundError") {
+        return res
+          .status(documentNotFoundError)
+          .send({ message: error.message });
+      }
+      return res
+        .status(defaultError)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
