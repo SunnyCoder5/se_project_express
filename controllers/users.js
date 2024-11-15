@@ -25,33 +25,35 @@ const createUser = (req, res) => {
     if (existingUser) {
       return res
         .status(duplicateError)
-        .send({ message: "This email already exists" })
-        .catch((err) => {
-          console.error(err);
-          return res
-            .status(defaultError)
-            .send({ message: "An error has occurred on the server." });
-        });
+        .send({ message: "This email already exists" });
     }
-    return bcrypt.hash(password, 10).then((hash) =>
-      User.create({ name, avatar, email, password: hash })
-        .then((user) =>
-          res.status(201).send({
-            name: user.name,
-            avatar: user.avatar,
-            email: user.email,
+    return bcrypt
+      .hash(password, 10)
+      .then((hash) =>
+        User.create({ name, avatar, email, password: hash })
+          .then((user) =>
+            res.status(201).send({
+              name: user.name,
+              avatar: user.avatar,
+              email: user.email,
+            }),
+          )
+          .catch((err) => {
+            console.error(err);
+            if (err.name === "ValidationError") {
+              return res.status(castError).send({ message: "Invalid data" });
+            }
+            return res
+              .status(defaultError)
+              .send({ message: "An error has occurred on the server." });
           }),
-        )
-        .catch((err) => {
-          console.error(err);
-          if (err.name === "ValidationError") {
-            return res.status(castError).send({ message: "Invalid data" });
-          }
-          return res
-            .status(defaultError)
-            .send({ message: "An error has occurred on the server." });
-        }),
-    );
+      )
+      .catch((err) => {
+        console.error(err);
+        return res
+          .status(defaultError)
+          .send({ message: "An error has ocurred to the server" });
+      });
   });
 };
 
