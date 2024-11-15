@@ -21,8 +21,8 @@ const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
   ClothingItem.create({ name, weather, imageUrl, owner })
-    .then((item) => {
-      res.status(201).send(item);
+    .then((newItem) => {
+      res.status(201).send(newItem);
     })
     .catch((err) => {
       console.error(err);
@@ -54,7 +54,7 @@ const deleteItem = (req, res) => {
 
       return ClothingItem.findByIdAndRemove(req.params.itemId)
         .orFail()
-        .then((newItem) => res.send(newItem))
+        .then((item) => res.send(item))
         .catch((err) => {
           console.error(err);
           if (err.name === "CastError") {
