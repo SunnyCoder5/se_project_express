@@ -1,19 +1,14 @@
 const ClothingItem = require("../models/clothingItem");
-const {
-  castError,
-  documentNotFoundError,
-  defaultError,
-  forbiddenError,
-} = require("../utils/errors");
+const { BadRequestError } = require("../utils/errors/BadRequestError");
+const { NotFoundError } = require("../utils/errors/NotFoundError");
+const { ForbiddenError } = require("../utils/errors/ForbiddenError");
 
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((clothingItems) => res.send(clothingItems))
     .catch((err) => {
       console.error(err);
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
@@ -27,11 +22,9 @@ const createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(castError).send({ message: err.message });
+        return next(new BadRequestError(err.message));
       }
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server." });
+      return next(err);
     });
 };
 
@@ -41,42 +34,34 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (!item.owner.equals(req.user._id)) {
-        return res
-          .status(forbiddenError)
-          .send({ message: "You can't delete this item" });
+        return next(new ForbiddenError("You can't delete this item"));
       }
 
       return ClothingItem.findByIdAndRemove(itemId)
         .orFail()
         .then((deletedItem) => res.send(deletedItem))
-        .catch((error) => {
+        .catch((err) => {
+          console.error(err);
+          if (err.name === "CastError") {
+            return next(new ForbiddenError("Invalid ID format"));
+          }
+          if (err.name === "DocumentNotFoundError") {
+            return next(new NotFoundError(err.message));
+          }
+          return next(error);
+        })
+
+        .catch((err) => {
           console.error(error);
-          if (error.name === "CastError") {
-            return res.status(castError).send({ message: "Invalid ID format" }); // Return 400 for invalid ID
+          if (err.name === "CastError") {
+            return next(new BadRequestError("Invalid ID format"));
           }
-          if (error.name === "DocumentNotFoundError") {
-            return res
-              .status(documentNotFoundError)
-              .send({ message: error.message });
+
+          if (err.name === "DocumentNotFoundError") {
+            return next(new NotFoundError("Item not found"));
           }
-          return res
-            .status(defaultError)
-            .send({ message: "An error has occurred on the server" });
+          return next(error);
         });
-    })
-    .catch((error) => {
-      console.error(error);
-      if (error.name === "CastError") {
-        return res.status(castError).send({ message: "Invalid ID format" }); // Also handle CastError here
-      }
-      if (error.name === "DocumentNotFoundError") {
-        return res
-          .status(documentNotFoundError)
-          .send({ message: error.message });
-      }
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -91,14 +76,12 @@ const likeItem = (req, res) =>
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: err.message });
+        return next(new NotFoundError("Item not found"));
       }
       if (err.name === "CastError") {
-        return res.status(castError).send({ message: "Invalid data" });
+        return next(new BadRequestError("Invalid data"));
       }
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server" });
+      return next(error);
     });
 
 const dislikeItem = (req, res) =>
@@ -112,14 +95,12 @@ const dislikeItem = (req, res) =>
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: err.message });
+        return next(new NotFoundError(err.message));
       }
       if (err.name === "CastError") {
-        return res.status(castError).send({ message: "Invalid data" });
+        return next(new BadRequestError("Invalid data"));
       }
-      return res
-        .status(defaultError)
-        .send({ message: "An error has occurred on the server" });
+      return next(error);
     });
 
 module.exports = { getItems, createItem, deleteItem, likeItem, dislikeItem };
