@@ -3,7 +3,7 @@ const { BadRequestError } = require("../utils/errors/BadRequestError");
 const { NotFoundError } = require("../utils/errors/NotFoundError");
 const { ForbiddenError } = require("../utils/errors/ForbiddenError");
 
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((clothingItems) => res.send(clothingItems))
     .catch((err) => {
@@ -12,7 +12,7 @@ const getItems = (req, res) => {
     });
 };
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
   ClothingItem.create({ name, weather, imageUrl, owner })
@@ -28,44 +28,39 @@ const createItem = (req, res) => {
     });
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
   ClothingItem.findById(itemId)
     .orFail()
-    .then((item) => {
-      if (!item.owner.equals(req.user._id)) {
-        return next(new ForbiddenError("You can't delete this item"));
+    .then((item) => res.send(item))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "CastError") {
+        return next(new BadRequestError("Invalid ID format"));
       }
 
-      return ClothingItem.findByIdAndRemove(itemId)
-        .orFail()
-        .then((deletedItem) => res.send(deletedItem))
-        .catch((err) => {
-          console.error(err);
-          if (err.name === "CastError") {
-            return next(new ForbiddenError("Invalid ID format"));
-          }
-          if (err.name === "DocumentNotFoundError") {
-            return next(new NotFoundError(err.message));
-          }
-          return next(error);
-        })
+      if (err.name === "DocumentNotFoundError") {
+        return next(new NotFoundError("Item not found"));
+      }
+      return next(err);
+    });
 
-        .catch((err) => {
-          console.error(error);
-          if (err.name === "CastError") {
-            return next(new BadRequestError("Invalid ID format"));
-          }
-
-          if (err.name === "DocumentNotFoundError") {
-            return next(new NotFoundError("Item not found"));
-          }
-          return next(error);
-        });
+  return ClothingItem.findByIdAndRemove(itemId)
+    .orFail()
+    .then((deletedItem) => res.send(deletedItem))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "CastError") {
+        return next(new ForbiddenError("Invalid ID format"));
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return next(new NotFoundError(err.message));
+      }
+      return next(err);
     });
 };
 
-const likeItem = (req, res) =>
+const likeItem = (req, res, next) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -81,10 +76,10 @@ const likeItem = (req, res) =>
       if (err.name === "CastError") {
         return next(new BadRequestError("Invalid data"));
       }
-      return next(error);
+      return next(err);
     });
 
-const dislikeItem = (req, res) =>
+const dislikeItem = (req, res, next) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -100,7 +95,7 @@ const dislikeItem = (req, res) =>
       if (err.name === "CastError") {
         return next(new BadRequestError("Invalid data"));
       }
-      return next(error);
+      return next(err);
     });
 
 module.exports = { getItems, createItem, deleteItem, likeItem, dislikeItem };
